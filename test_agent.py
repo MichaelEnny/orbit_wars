@@ -32,11 +32,23 @@ def result(label, ok, detail=""):
 
 from main import (
     fleet_speed, travel_time, dist,
-    planet_position, aim_at_moving_target,
-    path_crosses_sun, enemy_incoming as incoming_enemy_ships,
-    score_target as target_score, agent,
+    path_crosses_sun, agent,
     SUN_X, SUN_Y, SUN_RADIUS,
+    planet_pos, aim_at_moving_target,
+    enemy_incoming, friendly_incoming_count,
+    score_target_fn,
 )
+
+# adapt test shims
+def planet_position(p, turns, av, ip_dict):
+    ip = ip_dict.get(p.id, p)
+    return planet_pos(p.x, p.y, p.radius, turns, av, ip.x, ip.y)
+
+def incoming_enemy_ships(planet, fleets, player):
+    return enemy_incoming(planet, fleets, player)
+
+def target_score(src, tgt, av, ip, comet_ids, fer, step):
+    return score_target_fn(src, tgt, av, ip, comet_ids, fer, step)
 from kaggle_environments.envs.orbit_wars.orbit_wars import Planet, Fleet
 
 
@@ -102,7 +114,8 @@ result("Orbiting planet moves correctly after 100 turns", err < 0.5,
 # aim_at_moving_target — angle points toward target
 src = Planet(0, 0, 10.0, 50.0, 1.5, 50, 3)
 tgt = Planet(1, -1, 80.0, 50.0, 1.0, 5, 1)  # static, same y → angle should be ~0
-angle, eta, tx, ty = aim_at_moving_target(src.x, src.y, 50, tgt, 0.0, {1: tgt})
+angle, eta, tx, ty = aim_at_moving_target(src.x, src.y, 50,
+    tgt.x, tgt.y, tgt.radius, 0.0, tgt.x, tgt.y)
 result("Aim at static target on same row → angle ≈ 0", abs(angle) < 0.05,
        f"angle={angle:.4f} rad")
 
